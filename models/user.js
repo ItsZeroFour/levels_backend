@@ -6,22 +6,22 @@ const UserSchema = new mongoose.Schema({
   },
 
   last_active_at: {
-    type: String,
-    default: new Date.now(),
+    type: Date,
+    default: Date.now,
   },
 
   total_attempts: {
-    type: String,
+    type: Number,
     default: 0,
   },
 
   daily_attempts: {
-    type: String,
+    type: Number,
     default: 0,
   },
 
   extra_attempts: {
-    type: String,
+    type: Number,
     default: 0,
   },
 

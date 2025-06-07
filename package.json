@@ -2,7 +2,10 @@
   "name": "levels",
   "version": "1.0.0",
   "main": "server.js",
-  "scripts": {},
+  "type": "module",
+  "scripts": {
+    "start:dev": "nodemon server.js"
+  },
   "author": "",
   "license": "ISC",
   "description": "",

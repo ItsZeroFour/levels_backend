@@ -10,6 +10,8 @@ import path from "path";
 import { fileURLToPath } from "url";
 import multer from "multer";
 
+import UserRoutes from "./routes/UserRoutes.js";
+
 dotenv.config({ path: "./.env" });
 const app = express();
 
@@ -69,7 +71,7 @@ app.post("/upload", upload.single("image"), (req, res) => {
 });
 
 /* ROUTES */
-
+app.use("/user", UserRoutes);
 
 /* START FUNCTION */
 async function start() {
@@ -89,6 +91,5 @@ async function start() {
 }
 
 start();
-
 
 // oNVi4ZIMZ1UnhMpc
