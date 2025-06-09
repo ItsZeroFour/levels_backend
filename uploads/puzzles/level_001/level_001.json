@@ -1,0 +1,98 @@
+{
+  "name": "level_001",
+  "grid_size": 3,
+  "piece_width": 115,
+  "piece_height": 86,
+  "pieces": [
+    {
+      "id": "0_0",
+      "position": [
+        0,
+        2
+      ],
+      "image": "piece_0_0.png",
+      "x": -115,
+      "y": 86
+    },
+    {
+      "id": "0_1",
+      "position": [
+        1,
+        2
+      ],
+      "image": "piece_0_1.png",
+      "x": 0,
+      "y": 86
+    },
+    {
+      "id": "0_2",
+      "position": [
+        2,
+        2
+      ],
+      "image": "piece_0_2.png",
+      "x": 115,
+      "y": 86
+    },
+    {
+      "id": "1_0",
+      "position": [
+        0,
+        1
+      ],
+      "image": "piece_1_0.png",
+      "x": -115,
+      "y": 0
+    },
+    {
+      "id": "1_1",
+      "position": [
+        1,
+        1
+      ],
+      "image": "piece_1_1.png",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "id": "1_2",
+      "position": [
+        2,
+        1
+      ],
+      "image": "piece_1_2.png",
+      "x": 115,
+      "y": 0
+    },
+    {
+      "id": "2_0",
+      "position": [
+        0,
+        0
+      ],
+      "image": "piece_2_0.png",
+      "x": -115,
+      "y": -86
+    },
+    {
+      "id": "2_1",
+      "position": [
+        1,
+        0
+      ],
+      "image": "piece_2_1.png",
+      "x": 0,
+      "y": -86
+    },
+    {
+      "id": "2_2",
+      "position": [
+        2,
+        0
+      ],
+      "image": "piece_2_2.png",
+      "x": 115,
+      "y": -86
+    }
+  ]
+}

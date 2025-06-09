@@ -27,3 +27,77 @@ export const createUser = async (req, res) => {
     });
   }
 };
+
+export const getUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+
+    if (!user) {
+      return res.status(404).send({
+        message: "Пользователь не найден",
+      });
+    }
+
+    const { ...userData } = user._doc;
+    res.json(userData);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      message: "Не удалось получить пользователя",
+    });
+  }
+};
+
+export const increaseTotalAttempt = async (req, res) => {
+  try {
+    const userId = req.userId;
+
+    const updateAttemptsCount = await User.findByIdAndUpdate(
+      userId,
+      {
+        $inc: { total_attempts: 1 },
+      },
+      { new: true }
+    );
+
+    if (!updateAttemptsCount) {
+      return res.status(404).json({
+        message: "Не удалось получить пользователя",
+      });
+    }
+
+    res.status(200).json(updateAttemptsCount);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      message: "Не удалось выдать попытку",
+    });
+  }
+};
+
+export const increaseDailyAttempts = async (req, res) => {
+  try {
+    const user = await User.findByIdAndUpdate(
+      req.userId,
+      {
+        $inc: {
+          daily_attempts: 1,
+        },
+      },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        message: "Не удалось увеличить попытки",
+      });
+    }
+
+    return res.status(200).json(user);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      message: "Не удалось увеличить попытки",
+    });
+  }
+};
