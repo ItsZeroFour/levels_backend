@@ -37,6 +37,7 @@ const UserSchema = new mongoose.Schema({
 
   promo_codes: [String],
   events_processed: [String],
+  puzzel_collection: [String],
 });
 
 export default mongoose.model("User", UserSchema);
