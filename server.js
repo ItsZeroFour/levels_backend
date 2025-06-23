@@ -10,8 +10,10 @@ import path from "path";
 import { fileURLToPath } from "url";
 import multer from "multer";
 
+/* ROUTES */
 import UserRoutes from "./routes/UserRoutes.js";
 import GameRoutes from "./routes/GameRoutes.js";
+import StatusRoutes from "./routes/StatusRoutes.js";
 
 dotenv.config({ path: "./.env" });
 const app = express();
@@ -74,6 +76,7 @@ app.post("/upload", upload.single("image"), (req, res) => {
 /* ROUTES */
 app.use("/user", UserRoutes);
 app.use("/game", GameRoutes);
+app.use("/status", StatusRoutes);
 
 /* START FUNCTION */
 async function start() {

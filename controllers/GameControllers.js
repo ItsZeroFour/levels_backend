@@ -2,6 +2,7 @@ import Game from "../models/game.js";
 import User from "../models/user.js";
 import path from "path";
 import fs from "fs";
+import Status from "../models/status.js";
 
 export const createLevel = async (req, res) => {
   try {
@@ -95,6 +96,49 @@ export const startGame = async (req, res) => {
   }
 };
 
+export const levelComplete = async (req, res) => {
+  try {
+    // const gameId = req.params.id;
+
+    const updateUser = await User.findByIdAndUpdate(
+      req.userId,
+      {
+        $inc: { rating: req.body.rating_count, complete_levels: 1 },
+      },
+      { new: true }
+    );
+
+    if (!updateUser) {
+      return res.status(404).json({
+        message: "Не удалось обновить рейтинг пользователя",
+      });
+    }
+
+    const statuses = await Status.find().sort({ min_levels: -1 });
+
+    console.log(statuses);
+    
+
+    for (const status of statuses) {
+      if (updateUser.complete_levels >= status.min_levels) {
+        if (updateUser.status !== status.name) {
+          updateUser.status = status.name;
+          await updateUser.save();
+        }
+        break;
+      }
+    }
+
+    return res.status(200).json(updateUser);
+  } catch (err) {
+    console.log(err);
+
+    res.status(500).json({
+      message: "Не удалось завершить игру",
+    });
+  }
+};
+
 export const getAllLevels = async (req, res) => {
   try {
     const levels = await Game.find();
@@ -144,7 +188,11 @@ export const addItemToCollection = async (req, res) => {
     const { level_id } = req.params;
     const userId = req.userId;
 
-    const imagePath = path.resolve("uploads", "collection", `level_${level_id}.png`);
+    const imagePath = path.resolve(
+      "uploads",
+      "collection",
+      `level_${level_id}.png`
+    );
     const relativePath = `/uploads/collection/level_${level_id}.png`;
 
     if (!fs.existsSync(imagePath)) {

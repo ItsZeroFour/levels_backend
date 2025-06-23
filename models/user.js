@@ -15,16 +15,6 @@ const UserSchema = new mongoose.Schema({
     default: 0,
   },
 
-  daily_attempts: {
-    type: Number,
-    default: 0,
-  },
-
-  extra_attempts: {
-    type: Number,
-    default: 0,
-  },
-
   bonus_unlocked: {
     type: Boolean,
     default: false,
@@ -33,6 +23,26 @@ const UserSchema = new mongoose.Schema({
   has_purchased: {
     type: Boolean,
     default: false,
+  },
+
+  rating: {
+    type: Number,
+    default: 0,
+  },
+
+  complete_levels: {
+    type: Number,
+    default: 0,
+  },
+
+  status: {
+    type: String,
+    default: "Новичок корта",
+  },
+
+  name: {
+    type: String,
+    default: ""
   },
 
   promo_codes: [String],

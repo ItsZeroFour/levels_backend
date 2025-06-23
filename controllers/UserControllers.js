@@ -75,29 +75,46 @@ export const increaseTotalAttempt = async (req, res) => {
   }
 };
 
-export const increaseDailyAttempts = async (req, res) => {
+export const increaseRating = async (req, res) => {
   try {
-    const user = await User.findByIdAndUpdate(
+    const updateUser = await User.findByIdAndUpdate(
       req.userId,
       {
-        $inc: {
-          daily_attempts: 1,
-        },
+        $inc: { rating: req.body.rating_count },
       },
       { new: true }
     );
 
-    if (!user) {
+    if (!updateUser) {
       return res.status(404).json({
-        message: "Не удалось увеличить попытки",
+        message: "Не удалось обновить рейтинг пользователя",
       });
     }
 
-    return res.status(200).json(user);
+    return res.status(200).json(updateUser);
   } catch (err) {
     console.log(err);
     res.status(500).json({
-      message: "Не удалось увеличить попытки",
+      message: "Не удалось увеличить рейтинг",
+    });
+  }
+};
+
+export const getUsersByRating = async (req, res) => {
+  try {
+    const users = await User.find().sort({ rating: -1 }).limit(50);
+
+    if (!users) {
+      return res.status(404).json({
+        message: "Не удалось получить пользователей",
+      });
+    }
+
+    return res.status(200).json(users);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      message: "Не удалось получить пользователей по рейтингу",
     });
   }
 };

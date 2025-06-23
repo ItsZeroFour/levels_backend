@@ -9,6 +9,7 @@ router.get("/get-puzzel/:level", checkAuth, GameControllers.getPuzzleByLevel);
 router.patch("/start", checkAuth, GameControllers.startGame);
 router.get("/get-all", checkAuth, GameControllers.getAllLevels);
 router.get("/pieces/:level_id/:piece_id", checkAuth, GameControllers.getPiece);
-router.post("/add-to-collection/:level_id", checkAuth, GameControllers.addItemToCollection)
+router.post("/add-to-collection/:level_id", checkAuth, GameControllers.addItemToCollection);
+router.patch("/level-complete", checkAuth, GameControllers.levelComplete);
 
 export default router;
