@@ -14,6 +14,7 @@ import multer from "multer";
 import UserRoutes from "./routes/UserRoutes.js";
 import GameRoutes from "./routes/GameRoutes.js";
 import StatusRoutes from "./routes/StatusRoutes.js";
+import WebhookRoutes from "./routes/WebhookRoutes.js";
 
 dotenv.config({ path: "./.env" });
 const app = express();
@@ -77,6 +78,7 @@ app.post("/upload", upload.single("image"), (req, res) => {
 app.use("/user", UserRoutes);
 app.use("/game", GameRoutes);
 app.use("/status", StatusRoutes);
+app.use("/event", WebhookRoutes);
 
 /* START FUNCTION */
 async function start() {

@@ -42,12 +42,17 @@ const UserSchema = new mongoose.Schema({
 
   name: {
     type: String,
-    default: ""
+    default: "",
   },
 
   promo_codes: [String],
   events_processed: [String],
   puzzel_collection: [String],
+
+  events_by_type: {
+    type: Object,
+    default: {},
+  },
 });
 
 export default mongoose.model("User", UserSchema);

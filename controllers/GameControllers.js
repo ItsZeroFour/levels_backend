@@ -116,9 +116,6 @@ export const levelComplete = async (req, res) => {
 
     const statuses = await Status.find().sort({ min_levels: -1 });
 
-    console.log(statuses);
-    
-
     for (const status of statuses) {
       if (updateUser.complete_levels >= status.min_levels) {
         if (updateUser.status !== status.name) {
