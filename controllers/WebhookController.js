@@ -21,7 +21,9 @@ export const handleUserEventWebhook = async (req, res) => {
       });
     }
 
-    user.extra_attempts += 1;
+    const attemptsToAdd = event === "bio" ? 10 : 1;
+
+    user.total_attempts += attemptsToAdd;
     user.events_by_type[event] = true;
     user.markModified("events_by_type");
 
@@ -30,6 +32,7 @@ export const handleUserEventWebhook = async (req, res) => {
     return res.status(200).json({
       status: "ok",
       added_attempt: true,
+      attempts_added: attemptsToAdd,
       event_registered: event,
     });
   } catch (error) {

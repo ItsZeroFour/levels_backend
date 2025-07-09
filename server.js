@@ -10,6 +10,8 @@ import path from "path";
 import { fileURLToPath } from "url";
 import multer from "multer";
 
+import { setupDailyReset } from "./utils/resetEvents.js";
+
 /* ROUTES */
 import UserRoutes from "./routes/UserRoutes.js";
 import GameRoutes from "./routes/GameRoutes.js";
@@ -85,7 +87,11 @@ async function start() {
   try {
     await mongoose
       .connect(MONGO_URI)
-      .then(() => console.log("Mongo db connection successfully"))
+      .then(() => {
+        console.log("Mongo db connection successfully");
+
+        setupDailyReset();
+      })
       .catch((err) => console.log(err));
 
     app.listen(PORT, (err) => {
@@ -98,5 +104,3 @@ async function start() {
 }
 
 start();
-
-// oNVi4ZIMZ1UnhMpc
