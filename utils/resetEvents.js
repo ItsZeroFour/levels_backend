@@ -3,7 +3,7 @@ import User from "../models/user.js";
 
 export const setupDailyReset = () => {
   cron.schedule(
-    "* * * * *",
+    "0 0 * * *",
     async () => {
       try {
         console.log(

@@ -9,7 +9,7 @@ export const handleUserEventWebhook = async (req, res) => {
       return res.status(400).json({ error: "Неизвестный тип события" });
     }
 
-    const user = await User.findOne({ _id: user_id });
+    const user = await User.findOne({ user_id: user_id });
     if (!user) {
       return res.status(404).json({ message: "Пользователь не найден" });
     }

@@ -63,7 +63,7 @@ export const getPuzzleByLevel = async (req, res) => {
 
 export const startGame = async (req, res) => {
   try {
-    const user_data = await User.findById(req.userId);
+    const user_data = await User.findOne({ user_id: req.userId });
 
     if (user_data.daily_attempts <= 0) {
       return res.status(401).json({
@@ -71,8 +71,8 @@ export const startGame = async (req, res) => {
       });
     }
 
-    const user = await User.findByIdAndUpdate(
-      req.userId,
+    const user = await User.findOneAndUpdate(
+      { user_id: req.userId },
       {
         $inc: {
           daily_attempts: -1,
@@ -100,8 +100,8 @@ export const levelComplete = async (req, res) => {
   try {
     // const gameId = req.params.id;
 
-    const updateUser = await User.findByIdAndUpdate(
-      req.userId,
+    const updateUser = await User.findOneAndUpdate(
+      { user_id: req.userId },
       {
         $inc: { rating: req.body.rating_count, complete_levels: 1 },
       },
@@ -196,7 +196,7 @@ export const addItemToCollection = async (req, res) => {
       return res.status(404).json({ message: "Изображение не найдено" });
     }
 
-    const user = await User.findById(userId);
+    const user = await User.findOne({ user_id: req.userId });
     if (!user) {
       return res.status(404).json({ message: "Пользователь не найден" });
     }
