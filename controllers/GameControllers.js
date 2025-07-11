@@ -98,8 +98,6 @@ export const startGame = async (req, res) => {
 
 export const levelComplete = async (req, res) => {
   try {
-    // const gameId = req.params.id;
-
     const updateUser = await User.findOneAndUpdate(
       { user_id: req.userId },
       {
@@ -114,8 +112,12 @@ export const levelComplete = async (req, res) => {
       });
     }
 
-    const statuses = await Status.find().sort({ min_levels: -1 });
+    const completedLevel = updateUser.complete_levels;
+    if (completedLevel % 10 === 0) {
+      await grantBonusAbilities(req.userId, completedLevel);
+    }
 
+    const statuses = await Status.find().sort({ min_levels: -1 });
     for (const status of statuses) {
       if (updateUser.complete_levels >= status.min_levels) {
         if (updateUser.status !== status.name) {
@@ -126,15 +128,52 @@ export const levelComplete = async (req, res) => {
       }
     }
 
-    return res.status(200).json(updateUser);
+    const updatedUser = await User.findOne({ user_id: req.userId });
+    return res.status(200).json(updatedUser);
   } catch (err) {
     console.log(err);
-
     res.status(500).json({
       message: "Не удалось завершить игру",
     });
   }
 };
+
+async function grantBonusAbilities(userId, completedLevel) {
+  const user = await User.findOne({ user_id: userId });
+  if (!user) return;
+
+  // Инициализируем abilities, если их нет
+  user.abilities = user.abilities || {
+    extra_time: { count: 0, duration: 10 },
+    skip_level: { count: 0 },
+  };
+
+  // Определяем бонусы по таблице
+  let extraTimeBonus = 0;
+  let skipLevelBonus = 0;
+
+  if (completedLevel === 150) {
+    // Особый случай для 150 уровня
+    // +50 очков в турнирной таблице (обрабатывается в другом месте)
+  } else if (completedLevel % 20 === 0) {
+    // Уровни 20, 40, 60, 80, 100, 120, 140 - пропуск уровня
+    skipLevelBonus = 1;
+  } else if (completedLevel % 10 === 0) {
+    // Уровни 10, 30, 50, 70, 90, 110, 130 - дополнительные способности
+    const bonusMultiplier = Math.floor(completedLevel / 20) + 2;
+    extraTimeBonus = bonusMultiplier;
+  }
+
+  // Обновляем количество способностей
+  if (extraTimeBonus > 0) {
+    user.abilities.extra_time.count += extraTimeBonus;
+  }
+  if (skipLevelBonus > 0) {
+    user.abilities.skip_level.count += skipLevelBonus;
+  }
+
+  await user.save();
+}
 
 export const getAllLevels = async (req, res) => {
   try {

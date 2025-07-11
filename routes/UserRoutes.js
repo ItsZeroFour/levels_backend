@@ -10,5 +10,8 @@ router.patch("/increase-total-attempt", checkAuth, UserControllers.increaseTotal
 // router.patch('/increase-attempts', checkAuth, UserControllers.increaseDailyAttempts)
 router.patch("/increase-rating", checkAuth, UserControllers.increaseRating);
 router.get("/get-by-rating", UserControllers.getUsersByRating);
+router.get("/abilities", UserControllers.getUserAbilities);
+router.post("/abilities/use-extra-time", checkAuth, UserControllers.useExtraTimeAbility);
+router.post("/abilities/use-skip-level", checkAuth, UserControllers.useSkipLevelAbility);
 
 export default router;

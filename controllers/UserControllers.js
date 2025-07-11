@@ -33,7 +33,13 @@ export const createUser = async (req, res) => {
       return res.status(400).json({ message: "Токен не содержит user_id" });
     }
 
-    const doc = new User({ user_id: userId });
+    const doc = new User({
+      user_id: userId,
+      abilities: {
+        extra_time: { count: 1, duration: 10 },
+        skip_level: { count: 1 },
+      },
+    });
 
     const user = await doc.save();
 
@@ -148,5 +154,94 @@ export const getUsersByRating = async (req, res) => {
     res.status(500).json({
       message: "Не удалось получить пользователей по рейтингу",
     });
+  }
+};
+
+export const getUserAbilities = async (req, res) => {
+  try {
+    const user = await User.findOne({ user_id: req.userId }, { abilities: 1 });
+
+    if (!user) {
+      return res.status(404).json({ message: "Пользователь не найден" });
+    }
+
+    const abilities = {
+      extra_time: {
+        count: user.abilities?.extra_time?.count ?? 0,
+        duration: user.abilities?.extra_time?.duration ?? 10,
+      },
+      skip_level: {
+        count: user.abilities?.skip_level?.count ?? 0,
+      },
+    };
+
+    res.json(abilities);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Не удалось получить способности" });
+  }
+};
+
+export const useExtraTimeAbility = async (req, res) => {
+  try {
+    const user = await User.findOne({ user_id: req.userId });
+
+    if (!user) {
+      return res.status(404).json({ message: "Пользователь не найден" });
+    }
+
+    const extraTimeCount = user.abilities?.extra_time?.count ?? 0;
+
+    if (extraTimeCount <= 0) {
+      return res.status(400).json({ message: "Недостаточно способностей" });
+    }
+
+    user.abilities = user.abilities || {};
+    user.abilities.extra_time = {
+      count: extraTimeCount - 1,
+      duration: user.abilities?.extra_time?.duration ?? 10,
+    };
+
+    await user.save();
+
+    res.json({
+      success: true,
+      remaining: user.abilities.extra_time.count,
+      duration: user.abilities.extra_time.duration,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Не удалось использовать способность" });
+  }
+};
+
+export const useSkipLevelAbility = async (req, res) => {
+  try {
+    const user = await User.findOne({ user_id: req.userId });
+
+    if (!user) {
+      return res.status(404).json({ message: "Пользователь не найден" });
+    }
+
+    const skipLevelCount = user.abilities?.skip_level?.count ?? 0;
+
+    if (skipLevelCount <= 0) {
+      return res.status(400).json({ message: "Недостаточно способностей" });
+    }
+
+    user.abilities = user.abilities || {};
+    user.abilities.skip_level = {
+      count: skipLevelCount - 1,
+    };
+
+    await user.save();
+
+    res.json({
+      success: true,
+      remaining: user.abilities.skip_level.count,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Не удалось использовать способность" });
   }
 };

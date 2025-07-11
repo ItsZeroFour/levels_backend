@@ -50,6 +50,19 @@ const UserSchema = new mongoose.Schema({
     default: "",
   },
 
+  abilities: {
+    type: {
+      extra_time: {
+        count: { type: Number, default: 1 },
+        duration: { type: Number, default: 10 }
+      },
+      skip_level: {
+        count: { type: Number, default: 1 }
+      }
+    },
+    default: {}
+  },
+
   promo_codes: [String],
   events_processed: [String],
   puzzel_collection: [String],
