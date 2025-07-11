@@ -65,7 +65,7 @@ export const startGame = async (req, res) => {
   try {
     const user_data = await User.findOne({ user_id: req.userId });
 
-    if (user_data.daily_attempts <= 0) {
+    if (user_data.total_attempts <= 0) {
       return res.status(401).json({
         message: "У вас закончились попытки за сегодня",
       });
@@ -75,7 +75,7 @@ export const startGame = async (req, res) => {
       { user_id: req.userId },
       {
         $inc: {
-          daily_attempts: -1,
+          total_attempts: -1,
         },
       },
       { new: true }
