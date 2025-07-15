@@ -69,7 +69,8 @@ const UserSchema = new mongoose.Schema({
   puzzel_collection: [String],
 
   events_by_type: {
-    type: Object,
+    type: Map,
+    of: mongoose.Schema.Types.Mixed,
     default: {},
   },
 });
