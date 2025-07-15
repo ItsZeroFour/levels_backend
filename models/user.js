@@ -4,6 +4,7 @@ const UserSchema = new mongoose.Schema({
   user_id: {
     type: String,
     required: true,
+    unique: true,
   },
 
   external_id: {
@@ -54,13 +55,13 @@ const UserSchema = new mongoose.Schema({
     type: {
       extra_time: {
         count: { type: Number, default: 1 },
-        duration: { type: Number, default: 10 }
+        duration: { type: Number, default: 10 },
       },
       skip_level: {
-        count: { type: Number, default: 1 }
-      }
+        count: { type: Number, default: 1 },
+      },
     },
-    default: {}
+    default: {},
   },
 
   promo_codes: [String],

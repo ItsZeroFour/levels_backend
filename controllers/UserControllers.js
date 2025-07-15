@@ -17,7 +17,7 @@ YsVkX7ldZdNgzLtb+cafVvEi7RJf7LYAgXqizg7Bzw6k7G0fMnj94ZUi5EIXPTL4
 uwIDAQAB
 -----END PUBLIC KEY-----`;
 
-export const createUser = async (req, res) => {
+export const createOrAuthUser = async (req, res) => {
   try {
     const token = req.headers.authorization?.split(" ")[1] || req.body.token;
 
@@ -26,29 +26,39 @@ export const createUser = async (req, res) => {
     }
 
     const decoded = jwt.verify(token, PUBLIC_KEY, { algorithms: ["RS256"] });
-
     const userId = decoded.sub;
 
     if (!userId) {
       return res.status(400).json({ message: "Токен не содержит user_id" });
     }
 
-    const doc = new User({
-      user_id: userId,
-      abilities: {
-        extra_time: { count: 1, duration: 10 },
-        skip_level: { count: 1 },
-      },
-    });
+    let user = await User.findOne({ user_id: userId });
 
-    const user = await doc.save();
+    if (user) {
+      const newToken = jwt.sign({ user_id: user.user_id }, SECRET, {
+        expiresIn: EXPIRES_IN,
+      });
 
-    const newToken = jwt.sign({ user_id: user.user_id }, SECRET, {
-      expiresIn: EXPIRES_IN,
-    });
+      const userData = user._doc;
+      return res.json({ ...userData, token: newToken });
+    } else {
+      const doc = new User({
+        user_id: userId,
+        abilities: {
+          extra_time: { count: 1, duration: 10 },
+          skip_level: { count: 1 },
+        },
+      });
 
-    const userData = user._doc;
-    res.json({ ...userData, token: newToken });
+      user = await doc.save();
+
+      const newToken = jwt.sign({ user_id: user.user_id }, SECRET, {
+        expiresIn: EXPIRES_IN,
+      });
+
+      const userData = user._doc;
+      return res.json({ ...userData, token: newToken });
+    }
   } catch (err) {
     console.error(err);
 
@@ -61,7 +71,7 @@ export const createUser = async (req, res) => {
     }
 
     res.status(500).json({
-      message: "Не удалось зарегистрировать пользователя",
+      message: "Не удалось выполнить операцию",
     });
   }
 };
