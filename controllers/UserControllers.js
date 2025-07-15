@@ -17,7 +17,7 @@ YsVkX7ldZdNgzLtb+cafVvEi7RJf7LYAgXqizg7Bzw6k7G0fMnj94ZUi5EIXPTL4
 uwIDAQAB
 -----END PUBLIC KEY-----`;
 
-export const createOrAuthUser = async (req, res) => {
+export const createUser = async (req, res) => {
   try {
     const token = req.headers.authorization?.split(" ")[1] || req.body.token;
 
