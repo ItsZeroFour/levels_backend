@@ -56,6 +56,25 @@ export const createUser = async (req, res) => {
         expiresIn: EXPIRES_IN,
       });
 
+      try {
+        await axios.post(
+          `${process.env.WEBHOOK_URI}/wp-json/rb/v1.0/users/game-access`,
+          {
+            user_id: userId,
+            game_id: user._id,
+            timestamp: Math.floor(Date.now() / 1000),
+          },
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+      } catch (webhookError) {
+        console.error("Ошибка при отправке вебхука:", webhookError);
+      }
+
       const userData = user._doc;
       return res.json({ ...userData, token: newToken });
     }
