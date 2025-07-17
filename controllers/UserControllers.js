@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 import User from "../models/user.js";
 import jwt from "jsonwebtoken";
+import axios from "axios";
 
 dotenv.config();
 
@@ -71,6 +72,8 @@ export const createUser = async (req, res) => {
             },
           }
         );
+
+        console.log("Webhook send successfully");
       } catch (webhookError) {
         console.error("Ошибка при отправке вебхука:", webhookError);
       }
@@ -114,8 +117,6 @@ export const getUser = async (req, res) => {
     });
   }
 };
-
-import axios from "axios";
 
 export const checkLimit = async (req, res) => {
   try {
