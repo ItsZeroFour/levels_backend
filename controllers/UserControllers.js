@@ -68,7 +68,7 @@ export const createUser = async (req, res) => {
           {
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
+              Authorization: `Bearer ${process.env.BEARER_TOKEN}`,
             },
           }
         );
