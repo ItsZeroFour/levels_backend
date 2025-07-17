@@ -141,7 +141,7 @@ export const checkLimit = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({
-      message: "Не удалось выдать попытку",
+      message: "Не удалось проверить лимит попыток",
     });
   }
 };
