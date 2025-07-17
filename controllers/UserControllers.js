@@ -43,43 +43,61 @@ export const createUser = async (req, res) => {
       const userData = user._doc;
       return res.json({ ...userData, token: newToken });
     } else {
-      const doc = new User({
-        user_id: userId,
-        abilities: {
-          extra_time: { count: 1, duration: 10 },
-          skip_level: { count: 1 },
-        },
-      });
-
-      user = await doc.save();
-
-      const newToken = jwt.sign({ user_id: user.user_id }, SECRET, {
-        expiresIn: EXPIRES_IN,
-      });
-
       try {
-        await axios.post(
-          `${process.env.WEBHOOK_URI}/wp-json/rb/v1.0/users/game-access`,
-          {
-            user_id: +userId,
-            game_id: 1,
-            timestamp: Math.floor(Date.now() / 1000),
-          },
+        const response = await axios.get(
+          `${process.env.WEBHOOK_URI}/wp-json/rb/v1.0/users?filter=ids:${userId}&fields=id,first_name,last_name`,
           {
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${process.env.BEARER_TOKEN}`,
             },
           }
         );
 
-        console.log("Webhook send successfully");
-      } catch (webhookError) {
-        console.error("Ошибка при отправке вебхука:", webhookError);
-      }
+        const doc = new User({
+          user_id: userId,
+          first_name: response.data[0].first_name,
+          last_name: response.data[0].last_name,
+          abilities: {
+            extra_time: { count: 1, duration: 10 },
+            skip_level: { count: 1 },
+          },
+        });
 
-      const userData = user._doc;
-      return res.json({ ...userData, token: newToken });
+        user = await doc.save();
+
+        const newToken = jwt.sign({ user_id: user.user_id }, SECRET, {
+          expiresIn: EXPIRES_IN,
+        });
+
+        try {
+          await axios.post(
+            `${process.env.WEBHOOK_URI}/wp-json/rb/v1.0/users/game-access`,
+            {
+              user_id: +userId,
+              game_id: 1,
+              timestamp: Math.floor(Date.now() / 1000),
+            },
+            {
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${process.env.BEARER_TOKEN}`,
+              },
+            }
+          );
+
+          console.log("Webhook send successfully");
+        } catch (webhookError) {
+          console.error("Ошибка при отправке вебхука:", webhookError);
+        }
+
+        const userData = user._doc;
+        return res.json({ ...userData, token: newToken });
+      } catch (err) {
+        console.log(err);
+        res.status(501).json({
+          message: "Не удалось получить имя пользователя",
+        });
+      }
     }
   } catch (err) {
     console.error(err);

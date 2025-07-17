@@ -7,6 +7,16 @@ const UserSchema = new mongoose.Schema({
     unique: true,
   },
 
+  first_name: {
+    type: String,
+    required: true,
+  },
+
+  last_name: {
+    type: String,
+    required: true,
+  },
+
   external_id: {
     type: String,
   },
@@ -44,11 +54,6 @@ const UserSchema = new mongoose.Schema({
   status: {
     type: String,
     default: "Новичок корта",
-  },
-
-  name: {
-    type: String,
-    default: "",
   },
 
   abilities: {
