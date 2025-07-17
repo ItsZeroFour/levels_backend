@@ -115,27 +115,30 @@ export const getUser = async (req, res) => {
   }
 };
 
-export const increaseTotalAttempt = async (req, res) => {
+import axios from "axios";
+
+export const checkLimit = async (req, res) => {
   try {
     const userId = req.userId;
 
-    const updateAttemptsCount = await User.findOneAndUpdate(
-      { user_id: userId },
-      {
-        $inc: { total_attempts: 1 },
-      },
-      { new: true }
-    );
+    const user = await User.findOne({ user_id: userId });
 
-    if (!updateAttemptsCount) {
+    if (!user) {
       return res.status(404).json({
-        message: "Не удалось получить пользователя",
+        message: "Пользователь не найден",
       });
     }
 
-    res.status(200).json(updateAttemptsCount);
+    if (user.total_attempts >= 4) {
+      return res.status(403).json({
+        message: "Достигнут лимит дополнительных попыток",
+        isLimit: true,
+      });
+    }
+
+    res.status(200).json({ isLimit: false });
   } catch (err) {
-    console.log(err);
+    console.error(err);
     res.status(500).json({
       message: "Не удалось выдать попытку",
     });
