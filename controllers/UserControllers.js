@@ -62,7 +62,7 @@ export const createUser = async (req, res) => {
           `${process.env.WEBHOOK_URI}/wp-json/rb/v1.0/users/game-access`,
           {
             user_id: +userId,
-            game_id: +userId,
+            game_id: 1,
             timestamp: Math.floor(Date.now() / 1000),
           },
           {
