@@ -4,7 +4,7 @@ export const handleUserEventWebhook = async (req, res) => {
   try {
     const { event, user_id } = req.body;
 
-    const allowedEvents = ["comment", "feedback", "competition", "bio"];
+    const allowedEvents = ["comment", "feedback", "competition", "prediction", "bio"];
     if (!allowedEvents.includes(event)) {
       return res.status(400).json({ error: "Неизвестный тип события" });
     }
