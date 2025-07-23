@@ -7,7 +7,7 @@ export const setupDailyReset = () => {
     async () => {
       try {
         console.log(
-          `[${new Date().toISOString()}] Starting daily reset (events_by_type)...`
+          `[${new Date().toISOString()}] Starting daily reset (events_by_type and total_attempts)...`
         );
 
         const result = await User.updateMany({}, [
@@ -20,13 +20,15 @@ export const setupDailyReset = () => {
                   {},
                 ],
               },
+              total_attempts: 5
             },
           },
         ]);
 
         console.log(
           `Daily reset completed. Affected users: ${result.modifiedCount}\n` +
-            `- events_by_type очищен (bio сохранён, если был)`
+            `- events_by_type очищен (bio сохранён, если был)\n` +
+            `- total_attempts сброшен до 5`
         );
       } catch (error) {
         console.error("Daily reset error:", error);
