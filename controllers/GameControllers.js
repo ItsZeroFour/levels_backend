@@ -65,23 +65,19 @@ export const startGame = async (req, res) => {
   try {
     const user_data = await User.findOne({ user_id: req.userId });
 
-    if (user_data.total_attempts <= 0 && user_data.bonus_attempts <= 0) {
+    if (user_data.total_attempts <= 0) {
       return res.status(401).json({
         message: "У вас закончились попытки за сегодня",
       });
     }
 
-    let updateQuery = {};
-
-    if (user_data.total_attempts > 0) {
-      updateQuery = { $inc: { total_attempts: -1 } };
-    } else {
-      updateQuery = { $inc: { bonus_attempts: -1 } };
-    }
-
     const user = await User.findOneAndUpdate(
       { user_id: req.userId },
-      updateQuery,
+      {
+        $inc: {
+          total_attempts: -1,
+        },
+      },
       { new: true }
     );
 
