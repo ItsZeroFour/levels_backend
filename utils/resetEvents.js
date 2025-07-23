@@ -20,7 +20,8 @@ export const setupDailyReset = () => {
                   {},
                 ],
               },
-              total_attempts: 5
+              total_attempts: 5,
+              bonus_attempts: 0,
             },
           },
         ]);

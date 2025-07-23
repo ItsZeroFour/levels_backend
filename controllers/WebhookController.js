@@ -4,7 +4,13 @@ export const handleUserEventWebhook = async (req, res) => {
   try {
     const { event, user_id } = req.body;
 
-    const allowedEvents = ["comment", "feedback", "competition", "prediction", "bio"];
+    const allowedEvents = [
+      "comment",
+      "feedback",
+      "competition",
+      "prediction",
+      "bio",
+    ];
     if (!allowedEvents.includes(event)) {
       return res.status(400).json({ error: "Неизвестный тип события" });
     }
@@ -24,7 +30,7 @@ export const handleUserEventWebhook = async (req, res) => {
         });
       }
 
-      user.total_attempts += 10;
+      user.bonus_attempts += 10;
       user.events_by_type.set("bio", true);
 
       await user.save();
@@ -58,7 +64,7 @@ export const handleUserEventWebhook = async (req, res) => {
     }
 
     user.events_by_type.set(event, currentCount + 1);
-    user.total_attempts += 1;
+    user.bonus_attempts += 1;
 
     await user.save();
 

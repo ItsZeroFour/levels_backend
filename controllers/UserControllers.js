@@ -148,7 +148,7 @@ export const checkLimit = async (req, res) => {
       });
     }
 
-    if (user.total_attempts >= 4) {
+    if (user.bonus_attempts >= 4) {
       return res.status(403).json({
         message: "Достигнут лимит дополнительных попыток",
         isLimit: true,

@@ -31,6 +31,11 @@ const UserSchema = new mongoose.Schema({
     default: 0,
   },
 
+  bonus_attempts: {
+    type: Number,
+    default: 0,
+  },
+
   bonus_unlocked: {
     type: Boolean,
     default: false,
