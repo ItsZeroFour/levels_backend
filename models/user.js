@@ -28,7 +28,7 @@ const UserSchema = new mongoose.Schema({
 
   total_attempts: {
     type: Number,
-    default: 0,
+    default: 5,
   },
 
   bonus_attempts: {
