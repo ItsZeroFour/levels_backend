@@ -30,7 +30,7 @@ export const handleUserEventWebhook = async (req, res) => {
         });
       }
 
-      user.bonus_attempts += 10;
+      // user.bonus_attempts += 10;
       user.total_attempts += 10;
       user.events_by_type.set("bio", true);
 
