@@ -14,7 +14,7 @@ const UserSchema = new mongoose.Schema({
 
   last_name: {
     type: String,
-    required: true,
+    default: "",
   },
 
   external_id: {
