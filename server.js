@@ -11,7 +11,7 @@ import { fileURLToPath } from "url";
 import multer from "multer";
 
 import { setupDailyReset } from "./utils/resetEvents.js";
-import { Status, initializeStatuses } from "./status.js";
+import { initializeStatuses } from "./models/status.js";
 
 /* ROUTES */
 import UserRoutes from "./routes/UserRoutes.js";
