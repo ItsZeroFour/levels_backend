@@ -143,7 +143,7 @@ export const getUser = async (req, res) => {
     if (user.isAnonimus) {
       try {
         const response = await axios.get(
-          `${process.env.WEBHOOK_URI}/wp-json/rb/v1.0/users?filter=ids:${userId}&fields=id,first_name,last_name,is_anonymous`,
+          `${process.env.WEBHOOK_URI}/wp-json/rb/v1.0/users?filter=ids:${req.userId}&fields=id,first_name,last_name,is_anonymous`,
           {
             headers: {
               "Content-Type": "application/json",
