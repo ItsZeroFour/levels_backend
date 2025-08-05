@@ -11,6 +11,7 @@ import { fileURLToPath } from "url";
 import multer from "multer";
 
 import { setupDailyReset } from "./utils/resetEvents.js";
+import { Status, initializeStatuses } from "./status.js";
 
 /* ROUTES */
 import UserRoutes from "./routes/UserRoutes.js";
@@ -91,6 +92,7 @@ async function start() {
         console.log("Mongo db connection successfully");
 
         setupDailyReset();
+        initializeStatuses();
       })
       .catch((err) => console.log(err));
 
