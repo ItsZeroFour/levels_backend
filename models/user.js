@@ -83,6 +83,11 @@ const UserSchema = new mongoose.Schema({
     of: mongoose.Schema.Types.Mixed,
     default: {},
   },
+
+  isAnonimus: {
+    type: Boolean,
+    default: true,
+  },
 });
 
 export default mongoose.model("User", UserSchema);

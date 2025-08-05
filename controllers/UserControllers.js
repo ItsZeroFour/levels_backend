@@ -45,7 +45,7 @@ export const createUser = async (req, res) => {
     } else {
       try {
         const response = await axios.get(
-          `${process.env.WEBHOOK_URI}/wp-json/rb/v1.0/users?filter=ids:${userId}&fields=id,first_name,last_name`,
+          `${process.env.WEBHOOK_URI}/wp-json/rb/v1.0/users?filter=ids:${userId}&fields=id,first_name,last_name,is_anonymous`,
           {
             headers: {
               "Content-Type": "application/json",
@@ -53,15 +53,29 @@ export const createUser = async (req, res) => {
           }
         );
 
-        const doc = new User({
-          user_id: userId,
-          first_name: response.data[0].first_name,
-          last_name: response.data[0].last_name,
-          abilities: {
-            extra_time: { count: 1, duration: 10 },
-            skip_level: { count: 1 },
-          },
-        });
+        let doc;
+
+        if (response.data[0].is_anonymous) {
+          doc = new User({
+            user_id: userId,
+            first_name: userId,
+            last_name: "",
+            abilities: {
+              extra_time: { count: 1, duration: 10 },
+              skip_level: { count: 1 },
+            },
+          });
+        } else {
+          doc = new User({
+            user_id: userId,
+            first_name: response.data[0].first_name,
+            last_name: response.data[0].last_name,
+            abilities: {
+              extra_time: { count: 1, duration: 10 },
+              skip_level: { count: 1 },
+            },
+          });
+        }
 
         user = await doc.save();
 
@@ -124,6 +138,31 @@ export const getUser = async (req, res) => {
       return res.status(404).send({
         message: "Пользователь не найден",
       });
+    }
+
+    if (user.isAnonimus) {
+      try {
+        const response = await axios.get(
+          `${process.env.WEBHOOK_URI}/wp-json/rb/v1.0/users?filter=ids:${userId}&fields=id,first_name,last_name,is_anonymous`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (response.data[0].is_anonymous === false) {
+          await User.findOneAndUpdate(
+            { user_id: req.userId },
+            {
+              first_name: response.data[0].first_name,
+              last_name: response.data[0].last_name,
+            }
+          );
+        }
+      } catch (err) {
+        console.log(err);
+      }
     }
 
     const { ...userData } = user._doc;
