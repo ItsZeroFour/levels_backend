@@ -35,4 +35,5 @@ async function initializeStatuses() {
   }
 }
 
-export { Status, initializeStatuses };
+export default Status;
+export { initializeStatuses };
