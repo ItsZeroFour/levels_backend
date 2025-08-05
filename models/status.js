@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import testStatusData from "../uploads/test.status.json" assert { type: "json" };
+import testStatusData from "../uploads/test.status.json" with { type: "json" };
 
 const statusSchema = new mongoose.Schema({
   name: {
