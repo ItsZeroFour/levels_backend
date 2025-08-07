@@ -14,7 +14,7 @@ const UserSchema = new mongoose.Schema({
 
   last_name: {
     type: String,
-    required: true,
+    default: "",
   },
 
   external_id: {
@@ -27,6 +27,11 @@ const UserSchema = new mongoose.Schema({
   },
 
   total_attempts: {
+    type: Number,
+    default: 5,
+  },
+
+  bonus_attempts: {
     type: Number,
     default: 0,
   },
@@ -77,6 +82,11 @@ const UserSchema = new mongoose.Schema({
     type: Map,
     of: mongoose.Schema.Types.Mixed,
     default: {},
+  },
+
+  isAnonimus: {
+    type: Boolean,
+    default: true,
   },
 });
 
