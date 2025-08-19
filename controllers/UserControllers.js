@@ -335,3 +335,50 @@ export const useSkipLevelAbility = async (req, res) => {
     res.status(500).json({ message: "Не удалось использовать способность" });
   }
 };
+
+export const getPromoCodeLink = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const { promo_code } = req.body;
+    const deviceType = req.deviceType;
+
+    const clickId = Date.now().toString();
+
+    let baseUrl;
+    switch (deviceType) {
+      case "ios":
+        baseUrl = "https://bookmaker-ratings.ru/go/i/bk/944853/tennis_game";
+        break;
+      case "android":
+        baseUrl = "https://bookmaker-ratings.ru/go/a/bk/944853/tennis_game";
+        break;
+      default:
+        baseUrl = "https://bookmaker-ratings.ru/go/w/bk/944853/tennis_game";
+    }
+
+    const promoLink = `${baseUrl}/?click_id=${clickId}`;
+
+    const user = await User.findOne({ user_id: userId });
+    if (user) {
+      user.promo_codes.push({
+        code: promo_code,
+        claimed_at: new Date(),
+        click_id: clickId,
+        device_type: deviceType,
+      });
+      await user.save();
+    }
+
+    res.json({
+      success: true,
+      promo_link: promoLink,
+      click_id: clickId,
+      device_type: deviceType,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      message: "Не удалось сгенерировать ссылку на промокод",
+    });
+  }
+};

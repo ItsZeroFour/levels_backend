@@ -74,7 +74,12 @@ const UserSchema = new mongoose.Schema({
     default: {},
   },
 
-  promo_codes: [String],
+  promo_codes: [{
+    code: String,
+    claimed_at: Date,
+    click_id: String, // Добавляем поле для хранения click_id в вормате timestamps
+    device_type: String // iOS, android, или web
+  }],
   events_processed: [String],
   puzzel_collection: [String],
 
