@@ -353,7 +353,9 @@ export const getPromoCodeLink = async (req, res) => {
       await user.save();
     }
 
-    res.json({
+    console.log("Новая ссылка:", promoLink);
+
+    return res.json({
       success: true,
       promo_link: promoLink,
       click_id: clickId,
