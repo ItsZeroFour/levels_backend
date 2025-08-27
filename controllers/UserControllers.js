@@ -323,24 +323,54 @@ export const useSkipLevelAbility = async (req, res) => {
 export const getPromoCodeLink = async (req, res) => {
   try {
     const userId = req.userId;
-    const { promo_code } = req.body;
+    const { promo_code, level } = req.body;
     const deviceType = req.deviceType;
 
     const clickId = Date.now().toString();
 
-    let baseUrl;
-    switch (deviceType) {
-      case "ios":
-        baseUrl = "https://bookmaker-ratings.ru/go/i/bk/944853/tennis_game";
-        break;
-      case "android":
-        baseUrl = "https://bookmaker-ratings.ru/go/a/bk/944853/tennis_game";
-        break;
-      default:
-        baseUrl = "https://bookmaker-ratings.ru/go/w/bk/944853/tennis_game";
-    }
+    const levelLinks = {
+      20: { bk: "944853", suffix: "tennis_game" },
+      30: { bk: "1026500", suffix: "tennis_game" },
+      40: { bk: "751562", suffix: "tennis_game" },
+      50: { bk: "987694", suffix: "tennis_game_promo" },
+      60: { bk: "944853", suffix: "tennis_game" },
+      70: { bk: "510742", suffix: "tennis_game" },
+      80: { bk: "1070120", suffix: "tennis_game" },
+      90: { bk: "666278", suffix: "tennis_game" },
+      100: { bk: "510821", suffix: "tennis_game" },
+      110: { bk: "944853", suffix: "tennis_game" },
+      120: { bk: "510821", suffix: "tennis_game_promo" },
+      130: { bk: "987694", suffix: "tennis_game" },
+      140: { bk: "944853", suffix: "tennis_game" },
+      150: { bk: "944853", suffix: "tennis_game" },
+    };
 
-    const promoLink = `${baseUrl}/?click_id=${clickId}`;
+    let promoLink;
+
+    if (level === 10) {
+      promoLink = `https://rbmax.bookmaker-ratings.ru/?click_id=${clickId}`;
+    } else {
+      const linkData = levelLinks[level] || {
+        bk: "944853",
+        suffix: "tennis_game",
+      };
+      const { bk, suffix } = linkData;
+
+      let devicePrefix;
+      switch (deviceType) {
+        case "ios":
+          devicePrefix = "i";
+          break;
+        case "android":
+          devicePrefix = "a";
+          break;
+        default:
+          devicePrefix = "w";
+      }
+
+      const baseUrl = `https://bookmaker-ratings.ru/go/${devicePrefix}/bk/${bk}/${suffix}`;
+      promoLink = `${baseUrl}/?click_id=${clickId}`;
+    }
 
     const user = await User.findOne({ user_id: userId });
     if (user) {
@@ -349,6 +379,7 @@ export const getPromoCodeLink = async (req, res) => {
         claimed_at: new Date(),
         click_id: clickId,
         device_type: deviceType,
+        level: level,
       });
       await user.save();
     }
@@ -360,6 +391,7 @@ export const getPromoCodeLink = async (req, res) => {
       promo_link: promoLink,
       click_id: clickId,
       device_type: deviceType,
+      level: level,
     });
   } catch (err) {
     console.error(err);
