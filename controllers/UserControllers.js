@@ -39,79 +39,66 @@ export const createUser = async (req, res) => {
       const newToken = jwt.sign({ user_id: user.user_id }, SECRET, {
         expiresIn: EXPIRES_IN,
       });
-
-      const userData = user._doc;
-      return res.json({ ...userData, token: newToken });
+      return res.json({ ...user._doc, token: newToken });
     } else {
+      let firstName = userId;
+      let lastName = "";
+
       try {
         const response = await axios.get(
           `${process.env.WEBHOOK_URI}/wp-json/rb/v1.0/users?filter=ids:${userId}&fields=id,first_name,last_name,is_anonymous`,
+          { headers: { "Content-Type": "application/json" } }
+        );
+
+        if (Array.isArray(response.data) && response.data.length > 0) {
+          const wpUser = response.data[0];
+
+          if (!wpUser.is_anonymous) {
+            firstName = wpUser.first_name || userId;
+            lastName = wpUser.last_name || "";
+          }
+        }
+      } catch (err) {
+        console.error("Ошибка при запросе имени:", err.message);
+      }
+
+      const doc = new User({
+        user_id: userId,
+        first_name: firstName,
+        last_name: lastName,
+        abilities: {
+          extra_time: { count: 1, duration: 10 },
+          skip_level: { count: 1 },
+        },
+      });
+
+      user = await doc.save();
+
+      const newToken = jwt.sign({ user_id: user.user_id }, SECRET, {
+        expiresIn: EXPIRES_IN,
+      });
+
+      try {
+        await axios.post(
+          `${process.env.WEBHOOK_URI}/wp-json/rb/v1.0/users/game-access`,
+          {
+            user_id: +userId,
+            game_id: 1,
+            timestamp: Math.floor(Date.now() / 1000),
+          },
           {
             headers: {
               "Content-Type": "application/json",
+              Authorization: `Bearer ${process.env.BEARER_TOKEN}`,
             },
           }
         );
-
-        let doc;
-
-        if (response.data[0].is_anonymous) {
-          doc = new User({
-            user_id: userId,
-            first_name: userId,
-            last_name: "",
-            abilities: {
-              extra_time: { count: 1, duration: 10 },
-              skip_level: { count: 1 },
-            },
-          });
-        } else {
-          doc = new User({
-            user_id: userId,
-            first_name: response.data[0].first_name,
-            last_name: response.data[0].last_name,
-            abilities: {
-              extra_time: { count: 1, duration: 10 },
-              skip_level: { count: 1 },
-            },
-          });
-        }
-
-        user = await doc.save();
-
-        const newToken = jwt.sign({ user_id: user.user_id }, SECRET, {
-          expiresIn: EXPIRES_IN,
-        });
-
-        try {
-          await axios.post(
-            `${process.env.WEBHOOK_URI}/wp-json/rb/v1.0/users/game-access`,
-            {
-              user_id: +userId,
-              game_id: 1,
-              timestamp: Math.floor(Date.now() / 1000),
-            },
-            {
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${process.env.BEARER_TOKEN}`,
-              },
-            }
-          );
-
-          console.log("Webhook send successfully");
-        } catch (webhookError) {
-          console.error("Ошибка при отправке вебхука:", webhookError);
-        }
-
-        const userData = user._doc;
-        return res.json({ ...userData, token: newToken });
-      } catch (err) {
-        console.log(err);
-        res.status(501).json({
-          message: "Не удалось получить имя пользователя",
-        });
+        console.log("Webhook send successfully");
+      } catch (webhookError) {
+        console.error("Ошибка при отправке вебхука:", webhookError.message);
       }
+
+      return res.json({ ...user._doc, token: newToken });
     }
   } catch (err) {
     console.error(err);
@@ -119,14 +106,11 @@ export const createUser = async (req, res) => {
     if (err.name === "JsonWebTokenError") {
       return res.status(401).json({ message: "Неверный токен" });
     }
-
     if (err.name === "TokenExpiredError") {
       return res.status(401).json({ message: "Токен истек" });
     }
 
-    res.status(500).json({
-      message: "Не удалось выполнить операцию",
-    });
+    res.status(500).json({ message: "Не удалось выполнить операцию" });
   }
 };
 
@@ -333,5 +317,86 @@ export const useSkipLevelAbility = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Не удалось использовать способность" });
+  }
+};
+
+export const getPromoCodeLink = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const { promo_code, level } = req.body;
+    const deviceType = req.deviceType;
+
+    const clickId = Date.now().toString();
+
+    const levelLinks = {
+      20: { bk: "944853", suffix: "tennis_game" },
+      30: { bk: "1026500", suffix: "tennis_game" },
+      40: { bk: "751562", suffix: "tennis_game" },
+      50: { bk: "987694", suffix: "tennis_game_promo" },
+      60: { bk: "944853", suffix: "tennis_game" },
+      70: { bk: "510742", suffix: "tennis_game" },
+      80: { bk: "1070120", suffix: "tennis_game" },
+      90: { bk: "666278", suffix: "tennis_game" },
+      100: { bk: "510821", suffix: "tennis_game" },
+      110: { bk: "944853", suffix: "tennis_game" },
+      120: { bk: "510821", suffix: "tennis_game_promo" },
+      130: { bk: "987694", suffix: "tennis_game" },
+      140: { bk: "944853", suffix: "tennis_game" },
+      150: { bk: "944853", suffix: "tennis_game" },
+    };
+
+    let promoLink;
+
+    if (level === 10) {
+      promoLink = `https://rbmax.bookmaker-ratings.ru/?click_id=${clickId}`;
+    } else {
+      const linkData = levelLinks[level] || {
+        bk: "944853",
+        suffix: "tennis_game",
+      };
+      const { bk, suffix } = linkData;
+
+      let devicePrefix;
+      switch (deviceType) {
+        case "ios":
+          devicePrefix = "i";
+          break;
+        case "android":
+          devicePrefix = "a";
+          break;
+        default:
+          devicePrefix = "w";
+      }
+
+      const baseUrl = `https://bookmaker-ratings.ru/go/${devicePrefix}/bk/${bk}/${suffix}`;
+      promoLink = `${baseUrl}/?click_id=${clickId}`;
+    }
+
+    const user = await User.findOne({ user_id: userId });
+    if (user) {
+      user.promo_codes.push({
+        code: promo_code,
+        claimed_at: new Date(),
+        click_id: clickId,
+        device_type: deviceType,
+        level: level,
+      });
+      await user.save();
+    }
+
+    console.log("Новая ссылка:", promoLink);
+
+    return res.json({
+      success: true,
+      promo_link: promoLink,
+      click_id: clickId,
+      device_type: deviceType,
+      level: level,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      message: "Не удалось сгенерировать ссылку на промокод",
+    });
   }
 };
