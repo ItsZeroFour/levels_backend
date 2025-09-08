@@ -33,127 +33,84 @@ export const createUser = async (req, res) => {
       return res.status(400).json({ message: "Токен не содержит user_id" });
     }
 
-    let user = await User.findOne({ user_id: userId });
+    let firstName = userId;
+    let lastName = "";
+    let hasAllBioFields = false;
 
-    if (user) {
-      const newToken = jwt.sign({ user_id: user.user_id }, SECRET, {
-        expiresIn: EXPIRES_IN,
-      });
-      return res.json({ ...user._doc, token: newToken });
-    } else {
-      let firstName = userId;
-      let lastName = "";
+    try {
+      const response = await axios.get(
+        `${process.env.WEBHOOK_URI}/wp-json/rb/v1.0/users?filter=ids:${userId}&fields=id,first_name,last_name,is_anonymous,birthday,sport_types_interested_in,phone,email`,
+        { headers: { "Content-Type": "application/json" } }
+      );
 
-      try {
-        const response = await axios.get(
-          `${process.env.WEBHOOK_URI}/wp-json/rb/v1.0/users?filter=ids:${userId}&fields=id,first_name,last_name,is_anonymous,birthday,sport_types_interested_in,phone,email`,
-          { headers: { "Content-Type": "application/json" } }
-        );
+      if (Array.isArray(response.data) && response.data.length > 0) {
+        const wpUser = response.data[0];
 
-        if (Array.isArray(response.data) && response.data.length > 0) {
-          const wpUser = response.data[0];
+        if (!wpUser.is_anonymous) {
+          firstName = wpUser.first_name || userId;
+          lastName = wpUser.last_name || "";
 
-          if (!wpUser.is_anonymous) {
-            firstName = wpUser.first_name || userId;
-            lastName = wpUser.last_name || "";
-
-            const hasAllBioFields =
-              wpUser.first_name &&
-              wpUser.last_name &&
-              wpUser.birthday &&
-              wpUser.sport_types_interested_in &&
-              (wpUser.phone || wpUser.email);
-
-            const doc = new User({
-              user_id: userId,
-              first_name: firstName,
-              last_name: lastName,
-              abilities: {
-                extra_time: { count: 1, duration: 10 },
-                skip_level: { count: 1 },
-              },
-            });
-
-            user = await doc.save();
-
-            const newToken = jwt.sign({ user_id: user.user_id }, SECRET, {
-              expiresIn: EXPIRES_IN,
-            });
-
-            try {
-              await axios.post(
-                `${process.env.WEBHOOK_URI}/wp-json/rb/v1.0/users/game-access`,
-                {
-                  user_id: +userId,
-                  game_id: 1,
-                  timestamp: Math.floor(Date.now() / 1000),
-                },
-                {
-                  headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${process.env.BEARER_TOKEN}`,
-                  },
-                }
-              );
-              console.log("Webhook send successfully");
-            } catch (webhookError) {
-              console.error(
-                "Ошибка при отправке вебхука:",
-                webhookError.message
-              );
-            }
-
-            if (hasAllBioFields) {
-              return res.json({
-                bio_already: true,
-                ...user._doc,
-                token: newToken,
-              });
-            }
-          }
+          hasAllBioFields =
+            wpUser.first_name &&
+            wpUser.last_name &&
+            wpUser.birthday &&
+            wpUser.sport_types_interested_in &&
+            (wpUser.phone || wpUser.email);
         }
-      } catch (err) {
-        console.error("Ошибка при запросе имени:", err.message);
       }
-
-      const doc = new User({
-        user_id: userId,
-        first_name: firstName,
-        last_name: lastName,
-        abilities: {
-          extra_time: { count: 1, duration: 10 },
-          skip_level: { count: 1 },
-        },
-      });
-
-      user = await doc.save();
-
-      const newToken = jwt.sign({ user_id: user.user_id }, SECRET, {
-        expiresIn: EXPIRES_IN,
-      });
-
-      try {
-        await axios.post(
-          `${process.env.WEBHOOK_URI}/wp-json/rb/v1.0/users/game-access`,
-          {
-            user_id: +userId,
-            game_id: 1,
-            timestamp: Math.floor(Date.now() / 1000),
-          },
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${process.env.BEARER_TOKEN}`,
-            },
-          }
-        );
-        console.log("Webhook send successfully");
-      } catch (webhookError) {
-        console.error("Ошибка при отправке вебхука:", webhookError.message);
-      }
-
-      return res.json({ ...user._doc, token: newToken });
+    } catch (err) {
+      console.error("Ошибка при запросе имени:", err.message);
     }
+
+    let user = await User.findOneAndUpdate(
+      { user_id: userId },
+      {
+        $setOnInsert: {
+          user_id: userId,
+          first_name: firstName,
+          last_name: lastName,
+          abilities: {
+            extra_time: { count: 1, duration: 10 },
+            skip_level: { count: 1 },
+          },
+        },
+      },
+      { new: true, upsert: true }
+    );
+
+    const newToken = jwt.sign({ user_id: user.user_id }, SECRET, {
+      expiresIn: EXPIRES_IN,
+    });
+
+    try {
+      await axios.post(
+        `${process.env.WEBHOOK_URI}/wp-json/rb/v1.0/users/game-access`,
+        {
+          user_id: +userId,
+          game_id: 1,
+          timestamp: Math.floor(Date.now() / 1000),
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${process.env.BEARER_TOKEN}`,
+          },
+        }
+      );
+      console.log("Webhook send successfully");
+    } catch (webhookError) {
+      console.error("Ошибка при отправке вебхука:", webhookError.message);
+    }
+
+    if (hasAllBioFields) {
+      return res.json({
+        bio_already: true,
+        ...user._doc,
+        token: newToken,
+      });
+    }
+
+    return res.json({ ...user._doc, token: newToken });
   } catch (err) {
     console.error(err);
 
