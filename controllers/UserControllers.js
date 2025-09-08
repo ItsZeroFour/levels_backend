@@ -46,7 +46,7 @@ export const createUser = async (req, res) => {
 
       try {
         const response = await axios.get(
-          `${process.env.WEBHOOK_URI}/wp-json/rb/v1.0/users?filter=ids:${userId}&fields=id,first_name,last_name,is_anonymous`,
+          `${process.env.WEBHOOK_URI}/wp-json/rb/v1.0/users?filter=ids:${userId}&fields=id,first_name,last_name,is_anonymous,birthday,sport_types_interested_in,phone,email`,
           { headers: { "Content-Type": "application/json" } }
         );
 
@@ -56,6 +56,23 @@ export const createUser = async (req, res) => {
           if (!wpUser.is_anonymous) {
             firstName = wpUser.first_name || userId;
             lastName = wpUser.last_name || "";
+
+            const hasAllBioFields =
+              wpUser.first_name &&
+              wpUser.last_name &&
+              wpUser.birthday &&
+              wpUser.sport_types_interested_in &&
+              (wpUser.phone || wpUser.email);
+
+            if (hasAllBioFields) {
+              return res.json({
+                bio_already: true,
+                ...wpUser,
+                token: jwt.sign({ user_id: userId }, SECRET, {
+                  expiresIn: EXPIRES_IN,
+                }),
+              });
+            }
           }
         }
       } catch (err) {
