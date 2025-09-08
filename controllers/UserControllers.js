@@ -64,13 +64,50 @@ export const createUser = async (req, res) => {
               wpUser.sport_types_interested_in &&
               (wpUser.phone || wpUser.email);
 
+            const doc = new User({
+              user_id: userId,
+              first_name: firstName,
+              last_name: lastName,
+              abilities: {
+                extra_time: { count: 1, duration: 10 },
+                skip_level: { count: 1 },
+              },
+            });
+
+            user = await doc.save();
+
+            const newToken = jwt.sign({ user_id: user.user_id }, SECRET, {
+              expiresIn: EXPIRES_IN,
+            });
+
+            try {
+              await axios.post(
+                `${process.env.WEBHOOK_URI}/wp-json/rb/v1.0/users/game-access`,
+                {
+                  user_id: +userId,
+                  game_id: 1,
+                  timestamp: Math.floor(Date.now() / 1000),
+                },
+                {
+                  headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${process.env.BEARER_TOKEN}`,
+                  },
+                }
+              );
+              console.log("Webhook send successfully");
+            } catch (webhookError) {
+              console.error(
+                "Ошибка при отправке вебхука:",
+                webhookError.message
+              );
+            }
+
             if (hasAllBioFields) {
               return res.json({
                 bio_already: true,
-                ...wpUser,
-                token: jwt.sign({ user_id: userId }, SECRET, {
-                  expiresIn: EXPIRES_IN,
-                }),
+                ...user._doc,
+                token: newToken,
               });
             }
           }
