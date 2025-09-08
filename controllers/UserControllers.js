@@ -110,7 +110,7 @@ export const createUser = async (req, res) => {
       });
     }
 
-    return res.json({ ...user._doc, token: newToken });
+    return res.json({ ...user._doc, token: newToken, bio_already: false });
   } catch (err) {
     console.error(err);
 
