@@ -48,6 +48,7 @@ export const createUser = async (req, res) => {
         }
       );
 
+      console.log(`Bearer ${token}`);
       console.log(response.data[0]);
 
       if (Array.isArray(response.data) && response.data.length > 0) {
