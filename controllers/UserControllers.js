@@ -102,7 +102,14 @@ export const createUser = async (req, res) => {
       console.error("Ошибка при отправке вебхука:", webhookError.message);
     }
 
+    // если все BIO-поля заполнены
     if (hasAllBioFields) {
+      if (!user.events_by_type.get("bio")) {
+        user.total_attempts += 10;
+        user.events_by_type.set("bio", true);
+        await user.save();
+      }
+
       return res.json({
         bio_already: true,
         ...user._doc,
