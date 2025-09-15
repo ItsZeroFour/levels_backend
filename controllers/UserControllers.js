@@ -40,8 +40,16 @@ export const createUser = async (req, res) => {
     try {
       const response = await axios.get(
         `${process.env.WEBHOOK_URI}/wp-json/rb/v1.0/users?filter=ids:${userId}&fields=id,first_name,last_name,is_anonymous,birthday,sport_types_interested_in,phone,email`,
-        { headers: { "Content-Type": "application/json" } }
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
+
+      console.log(`Bearer ${token}`);
+      console.log(response.data[0]);
 
       if (Array.isArray(response.data) && response.data.length > 0) {
         const wpUser = response.data[0];
@@ -103,6 +111,12 @@ export const createUser = async (req, res) => {
     }
 
     if (hasAllBioFields) {
+      if (!user.events_by_type.get("bio")) {
+        user.total_attempts += 10;
+        user.events_by_type.set("bio", true);
+        await user.save();
+      }
+
       return res.json({
         bio_already: true,
         ...user._doc,
